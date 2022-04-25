@@ -77,24 +77,37 @@ class Main_GUI(Tk):
 
     def create_gui(self):
         self.main_menu_frame = Main_menu_frame(self, self.screen_width_pixle, self.screen_height_pixle, self.swap_to_graph_frame)
-        self.salinity_graph_frame = Graph_frame(self, self.screen_width_in, self.screen_height_in * (4/5), self.swap_to_main_menu_frame, 'Time','Salinity (ppm)' ,"Salinity vs. Time" , 500, 200)
-        self.temperature_graph_frame = Graph_frame(self, self.screen_width_in, self.screen_height_in * (4/5), self.swap_to_main_menu_frame,'Time','Temperature' ,"Salinity vs. Time" , 500, 200)
-        self.ph_graph_frame = Graph_frame(self, self.screen_width_in, self.screen_height_in * (4/5), self.swap_to_main_menu_frame, 'Time','PH' ,"PH vs. Time" , 500, 200)
+        self.salinity_graph_frame = Graph_frame(self, self.screen_width_in, self.screen_height_in * (4/5), self.swap_to_main_menu_frame, 'Time','Salinity' ,"Salinity vs. Time" , 500, 200)
+        self.temperature_graph_frame = Graph_frame(self, self.screen_width_in, self.screen_height_in * (4/5), self.swap_to_main_menu_frame,'Time','Temperature' ,"Temperature vs. Time" , 500, 200)
+        self.ph_graph_frame = Graph_frame(self, self.screen_width_in, self.screen_height_in * (4/5), self.swap_to_main_menu_frame, 'Time','Ph' ,"PH vs. Time" , 500, 200)
 
-        self.main_menu_frame.tkraise()
+        self.salinity_graph_frame.forget()
+        self.temperature_graph_frame.forget()
+        self.ph_graph_frame.forget()
 
-    def swap_to_main_menu_frame(self):
-        self.main_menu_frame.tkraise()
+    def swap_to_main_menu_frame(self, graph):
+        if graph == "Salinity":
+            self.salinity_graph_frame.forget()
+            
+        elif graph == "Temperature":
+            self.temperature_graph_frame.forget()
+
+        elif graph == "Ph":
+            self.ph_graph_frame.forget()
+
+        self.main_menu_frame.pack(expand=1, fill="both")
 
     def swap_to_graph_frame(self, graph):
+        self.main_menu_frame.forget()
+
         if graph == "Salinity":
-            return self.salinity_graph_frame.tkraise()
+            return self.salinity_graph_frame.pack(expand=1, fill="both")
             
         if graph == "Temperature":
-            return self.temperature_graph_frame.tkraise()
+            return self.temperature_graph_frame.pack(expand=1, fill="both")
 
         if graph == "Ph":
-            return self.ph_graph_frame.tkraise()
+            return self.ph_graph_frame.pack(expand=1, fill="both")
 
     def run(self):
         #self.create_main_menu_frame()
@@ -137,7 +150,7 @@ class Main_menu_frame(ttk.Frame):
         button.grid(row=row, column=column, sticky="news")
         return button
 
-    def exit(self):
+    def exit(self, _):
         quit()
             
             
@@ -156,7 +169,7 @@ class Graph_frame(ttk.Frame):
 
         self.create_widget_config()
 
-        self.back_button = ttk.Button(self, text="Back", command=command)
+        self.back_button = ttk.Button(self, text="Back", command=lambda: command(ylabel))
         self.back_button.grid(row=0, column=0, sticky="news")
         
         self.create_graph_type_menu()
