@@ -28,27 +28,30 @@ import pandas as pd
 class Main_GUI(Tk):
 
     SALINITY_GRAPH_DATA = {
+        "measurement": "Salinity",
         "xlabel": 'Time',
-        "ylabel": 'Salinity',
+        "ylabel": 'Salinity (ppt)',
         "title": "Salinity vs. Time",
-        "ucl": 500,
-        "lcl": 200
+        "ucl": 36.0,
+        "lcl": 34.0
     }
 
     TEMPERATURE_GRAPH_DATA = {
+        "measurement": "Temperature",
         "xlabel": 'Time',
-        "ylabel": "Temperature",
+        "ylabel": "Temperature (F)",
         "title": "Temperature vs. Time",
-        "ucl": 500,
-        "lcl": 200
+        "ucl": 77,
+        "lcl": 75
     }
 
     PH_GRAPH_DATA = {
+        "measurement": "pH",
         "xlabel": 'Time',
         "ylabel": "pH",
         "title": "pH vs. Time",
-        "ucl": 500,
-        "lcl": 200
+        "ucl": 8.4,
+        "lcl": 8.0
     }
 
     DEBUG = True
@@ -57,46 +60,33 @@ class Main_GUI(Tk):
 
     def __init__(self):
         Tk.__init__(self)
-
         self.attributes('-fullscreen', True)
-        self.screen_width_in = self.winfo_screenmmwidth() / 25.4
-        self.screen_height_in = self.winfo_screenmmheight() / 25.4
-        self.screen_width_pixle = self.winfo_screenwidth()
-        self.screen_height_pixle = self.winfo_screenheight()     
 
-        # see if we need to calculate dpi
-        if self.DEBUG:
-            print(f"The screen is {self.screen_width_in}in x {self.screen_height_in}in")
-
-    def create_main_menu_frame(self):
-        main_menu = Main_menu_frame(self, self.screen_width_pixle, self.screen_height_pixle)
-
-    def create_graph_frame(self):
-        # Data in here is just to see how things work/look
-        gw1 = Graph_frame(self, self.screen_width_in, self.screen_height_in * (4/5),'Time','Salinity (ppm)' ,"Salinity vs. Time" , 500, 200)
+        self.graph_sizing = {
+            "graph_width_in" : (self.winfo_screenmmwidth() / 25.4),
+            "graph_height_in" : (self.winfo_screenmmheight() / 25.4) * 0.8
+        }   
 
     def create_gui(self):
-        self.main_menu_frame = Main_menu_frame(self, 
-            self.screen_width_pixle, 
-            self.screen_height_pixle, 
-            self.swap_to_graph_frame
-        )
-        self.salinity_graph_frame = Graph_frame(self, self.screen_width_in, self.screen_height_in * (4/5), self.swap_to_main_menu_frame, self.SALINITY_GRAPH_DATA)
-        self.temperature_graph_frame = Graph_frame(self, self.screen_width_in, self.screen_height_in * (4/5), self.swap_to_main_menu_frame, self.TEMPERATURE_GRAPH_DATA)
-        self.ph_graph_frame = Graph_frame(self, self.screen_width_in, self.screen_height_in * (4/5), self.swap_to_main_menu_frame, self.PH_GRAPH_DATA)
+        self.main_menu_frame = Main_menu_frame(self, self.swap_to_graph_frame)
 
+        self.salinity_graph_frame = Graph_frame(self, self.graph_sizing, self.swap_to_main_menu_frame, self.SALINITY_GRAPH_DATA)
+        self.temperature_graph_frame = Graph_frame(self, self.graph_sizing, self.swap_to_main_menu_frame, self.TEMPERATURE_GRAPH_DATA)
+        self.ph_graph_frame = Graph_frame(self, self.graph_sizing, self.swap_to_main_menu_frame, self.PH_GRAPH_DATA)
+
+        # Hide the graphs from screen
         self.salinity_graph_frame.forget()
         self.temperature_graph_frame.forget()
         self.ph_graph_frame.forget()
 
     def swap_to_main_menu_frame(self, graph):
-        if graph == "Salinity":
+        if graph == self.SALINITY_GRAPH_DATA["measurement"]:
             self.salinity_graph_frame.forget()
             
-        elif graph == "Temperature":
+        elif graph == self.TEMPERATURE_GRAPH_DATA["measurement"]:
             self.temperature_graph_frame.forget()
 
-        elif graph == "pH":
+        elif graph == self.PH_GRAPH_DATA["measurement"]:
             self.ph_graph_frame.forget()
 
         self.main_menu_frame.pack(expand=1, fill="both")
@@ -104,18 +94,16 @@ class Main_GUI(Tk):
     def swap_to_graph_frame(self, graph):
         self.main_menu_frame.forget()
 
-        if graph == "Salinity":
+        if graph == self.SALINITY_GRAPH_DATA["measurement"]:
             return self.salinity_graph_frame.pack(expand=1, fill="both")
             
-        if graph == "Temperature":
+        if graph == self.TEMPERATURE_GRAPH_DATA["measurement"]:
             return self.temperature_graph_frame.pack(expand=1, fill="both")
 
-        if graph == "pH":
+        if graph == self.PH_GRAPH_DATA["measurement"]:
             return self.ph_graph_frame.pack(expand=1, fill="both")
 
     def run(self):
-        #self.create_main_menu_frame()
-        #self.create_graph_frame()
         self.create_gui()
         self.mainloop()
 
@@ -123,13 +111,9 @@ class Main_menu_frame(ttk.Frame):
     MAIN_MENU_BUTTON_FONT_SIZE = 100
     WIDGET_FONT = 'Helvetica'
 
-    def __init__(self, master, screen_width, screen_height, command):
+    def __init__(self, master, command):
         Frame.__init__(self, master)
         self.pack(expand=1, fill="both")
-
-        # Remove if I do not reuse
-        self.screen_width = screen_width
-        self.screen_height = screen_height
 
         self.create_widget_config() 
 
@@ -167,13 +151,13 @@ class Graph_frame(ttk.Frame):
 
     GRAPH_TYPES = ["Live", "Hour", "Day", "Week"]
 
-    def __init__(self, master, graph_width, graph_height, command, graph_parameters):
+    def __init__(self, master,command, graph_parameters):
         Frame.__init__(self, master)
         self.pack(expand=1, fill="both")
 
         self.create_widget_config()
 
-        self.back_button = ttk.Button(self, text="Back", command=lambda: command(graph_parameters["ylabel"]))
+        self.back_button = ttk.Button(self, text="Back", command=lambda: command(graph_parameters["measurement"]))
         self.back_button.grid(row=0, column=0, sticky="news")
         
         self.create_graph_type_menu()
@@ -229,15 +213,6 @@ class Graph(plt.Figure):
         self.figure_axes.axhline(y=graph_parameters["ucl"], color='r', label="UCL")
         self.figure_axes.axhline(y=graph_parameters["lcl"], color='b', label="LCL")
         self.figure_axes.legend()
-
-        #liveData = pd.read_csv('liveData.csv')
-        #times = liveData['time'].to_numpy()
-        #temps = liveData['temp'].to_numpy()
-        #salinity = liveData['salinity'].to_numpy()
-        #pH = liveData['pH'].to_numpy()
-
-        #self.figure_axes.plot(times,temps)
-
 
         self.canvas.draw()
         self.canvas.get_tk_widget().grid(row=1, column=0, columnspan=2, sticky="news")
