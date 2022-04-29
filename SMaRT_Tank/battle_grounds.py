@@ -1,33 +1,28 @@
 # This is the first python file here, just here to test things.
 
 #
+from multiprocessing.sharedctypes import Value
 from tkinter import *
-
-
-def raise_frame(frame):
-    frame.tkraise()
+from tkinter import ttk
 
 root = Tk()
+root.geometry("400x400")
 
-f1 = Frame(root)
-f2 = Frame(root)
-f3 = Frame(root)
-f4 = Frame(root)
+var1 = IntVar()
+var2 = IntVar()
+var3 = IntVar()
+var4 = IntVar()
 
-for frame in (f1, f2, f3, f4):
-    frame.grid(row=0, column=0, sticky='news')
+GRAPH_TYPES = [("Live", var1), ("Hour", var2), ("Day", var3), ("Week", var4)]
 
-Button(f1, text='Go to frame 2', command=lambda:raise_frame(f2)).pack()
-Label(f1, text='FRAME 1').pack()
+menu_button = ttk.Menubutton(root, text="Select Graph Type")
+menu = Menu(menu_button, tearoff=False)
 
-Label(f2, text='FRAME 2').pack()
-Button(f2, text='Go to frame 3', command=lambda:raise_frame(f3)).pack()
+for type, var in GRAPH_TYPES:
+    menu.add_radiobutton(label=type, variable=var)
 
-Label(f3, text='FRAME 3').pack(side='left')
-Button(f3, text='Go to frame 4', command=lambda:raise_frame(f4)).pack(side='left')
+menu_button["menu"] = menu
 
-Label(f4, text='FRAME 4').pack()
-Button(f4, text='Goto to frame 1', command=lambda:raise_frame(f1)).pack()
+menu_button.grid(row=0, column=1, sticky="news")
 
-raise_frame(f1)
 root.mainloop()
