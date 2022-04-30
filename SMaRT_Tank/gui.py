@@ -112,7 +112,9 @@ class Main_menu_frame(ttk.Frame):
     WIDGET_FONT = 'Helvetica'
 
     def __init__(self, master, command):
-        Frame.__init__(self, master)
+        ttk.Frame.__init__(self, master)
+
+
         self.pack(expand=1, fill="both")
 
         self.create_widget_config() 
