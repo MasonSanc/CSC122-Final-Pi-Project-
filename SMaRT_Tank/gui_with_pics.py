@@ -148,19 +148,19 @@ class Main_menu_frame(ttk.Frame):
     def create_menu_button(self, text, command, row, column):
 
         if text == "Other":
-            PIL_image = Image.open('./art_assets/settings.jpg').convert('RGBA')
+            PIL_image = Image.open('./art_assets/settings.png').convert('RGBA')
             image = ImageTk.PhotoImage(PIL_image)
 
         elif text == "Salinity":
-            PIL_image = Image.open('./art_assets/salinity.jpg').convert('RGBA')
+            PIL_image = Image.open('./art_assets/salinity.png').convert('RGBA')
             image = ImageTk.PhotoImage(PIL_image)
 
         elif text == "Temperature":
-            PIL_image = Image.open('./art_assets/temperature.jpg').convert('RGBA')
+            PIL_image = Image.open('./art_assets/temperature.png').convert('RGBA')
             image = ImageTk.PhotoImage(PIL_image)
 
         elif text == "pH":
-            PIL_image = Image.open('./art_assets/ph.jpg').convert('RGBA')
+            PIL_image = Image.open('./art_assets/ph.png').convert('RGBA')
             image = ImageTk.PhotoImage(PIL_image)
 
         else:
