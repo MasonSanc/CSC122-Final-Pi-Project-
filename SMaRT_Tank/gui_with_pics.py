@@ -166,7 +166,7 @@ class Main_menu_frame(ttk.Frame):
         else:
             image = None
 
-        button = ttk.Button(self, text=text, image=image, command=lambda: command(text))
+        button = ttk.Button(self, text=text, image=image, padding=0, command=lambda: command(text))
         button.image = image
         button.grid(row=row, column=column, sticky="news")
         return button
