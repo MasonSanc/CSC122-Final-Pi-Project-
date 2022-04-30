@@ -151,7 +151,7 @@ class Graph_frame(ttk.Frame):
 
     GRAPH_TYPES = ["Live", "Hour", "Day", "Week"]
 
-    def __init__(self, master,command, graph_parameters):
+    def __init__(self, master, graph_sizing ,command, graph_parameters):
         Frame.__init__(self, master)
         self.pack(expand=1, fill="both")
 
@@ -162,7 +162,7 @@ class Graph_frame(ttk.Frame):
         
         self.create_graph_type_menu()
 
-        self.graph = Graph(self, graph_width, graph_height, graph_parameters)
+        self.graph = Graph(self, graph_sizing, graph_parameters)
 
     # To change the look of the widgets and add weights to the columns and rows
     def create_widget_config(self):
@@ -172,6 +172,7 @@ class Graph_frame(ttk.Frame):
         self.menu_button_style = ttk.Style()
         self.menu_button_style.configure('TMenubutton', font=(self.WIDGET_FONT, self.GRAPH_TYPE_MENU_FONT_SIZE))
 
+        # have the buttons take free space by giving them weight
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=4)
         self.rowconfigure(0, weight=1)
@@ -196,8 +197,8 @@ class Graph(plt.Figure):
 
     DEBUG = True
     
-    def __init__(self, master, graph_width, graph_height, graph_parameters):
-        plt.Figure.__init__(self, figsize=(graph_width, graph_height), dpi=100)
+    def __init__(self, master, graph_sizing, graph_parameters):
+        plt.Figure.__init__(self, figsize=(graph_sizing["graph_width_in"], graph_sizing["graph_height_in"]), dpi=100)
         self.figure_axes = self.add_subplot()
         self.canvas = FigureCanvasTkAgg(self, master)
         
