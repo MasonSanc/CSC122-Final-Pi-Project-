@@ -18,7 +18,6 @@ There are two paths to take with vcontroling the frames.
     Faster start up, slow swap between frames, less demmanding for updating graphs
 '''
 
-from ast import AsyncFunctionDef
 from tkinter import *
 from tkinter import ttk
 from turtle import bgcolor
