@@ -20,10 +20,12 @@ There are two paths to take with vcontroling the frames.
 
 from tkinter import *
 from tkinter import ttk
+from turtle import bgcolor
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import pandas as pd
+from PIL import ImageTk, Image
 
 class Main_GUI(Tk):
 
@@ -55,7 +57,6 @@ class Main_GUI(Tk):
     }
 
     DEBUG = True
-
 
 
     def __init__(self):
@@ -112,10 +113,10 @@ class Main_menu_frame(ttk.Frame):
     WIDGET_FONT = 'Helvetica'
 
     def __init__(self, master, command):
-        ttk.Frame.__init__(self, master)
-
-
+        Frame.__init__(self, master)
         self.pack(expand=1, fill="both")
+
+        #self.background = self.set_background()
 
         self.create_widget_config() 
 
@@ -123,7 +124,16 @@ class Main_menu_frame(ttk.Frame):
         self.salinity_button = self.create_menu_button("Salinity", command, 0, 1)
         self.temperature_button = self.create_menu_button("Temperature", command, 1, 0)
         self.ph_button = self.create_menu_button("pH", command, 1, 1)
-
+    """
+    def set_background(self):
+        image = None
+        bg_image = Image.open('art_assets/bg.jpg').convert('RGBA')
+        image = ImageTk.PhotoImage(bg_image)
+        background = Label(self, image=image)
+        background.place(anchor='center')
+        background.image = image
+        return background
+    """
 
     def create_widget_config(self):
         self.button_style = ttk.Style()
@@ -134,9 +144,29 @@ class Main_menu_frame(ttk.Frame):
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
 
-
     def create_menu_button(self, text, command, row, column):
-        button = ttk.Button(self, text=text, command=lambda: command(text))
+
+        if text == "Other":
+            PIL_image = Image.open('./art_assets/settings.png').convert('RGBA')
+            image = ImageTk.PhotoImage(PIL_image)
+
+        elif text == "Salinity":
+            PIL_image = Image.open('./art_assets/salinity.png').convert('RGBA')
+            image = ImageTk.PhotoImage(PIL_image)
+
+        elif text == "Temperature":
+            PIL_image = Image.open('./art_assets/temperature.png').convert('RGBA')
+            image = ImageTk.PhotoImage(PIL_image)
+
+        elif text == "pH":
+            PIL_image = Image.open('./art_assets/ph.png').convert('RGBA')
+            image = ImageTk.PhotoImage(PIL_image)
+
+        else:
+            image = None
+
+        button = ttk.Button(self, text=text, image=image, padding=0, command=lambda: command(text))
+        button.image = image
         button.grid(row=row, column=column, sticky="news")
         return button
 
@@ -180,7 +210,6 @@ class Graph_frame(ttk.Frame):
         self.rowconfigure(0, weight=1)
         self.rowconfigure(1, weight=0)
 
-
     def create_graph_type_menu(self):
         self.menu_button = ttk.Menubutton(self, text="Select Graph Type")
         self.menu = Menu(self.menu_button, tearoff=False)
@@ -193,7 +222,6 @@ class Graph_frame(ttk.Frame):
 
     def back(self):
         quit()
-
 
 class Graph(plt.Figure):
 
@@ -221,7 +249,6 @@ class Graph(plt.Figure):
         self.canvas.get_tk_widget().grid(row=1, column=0, columnspan=2, sticky="news")
 
     
-
 
 app = Main_GUI()
 app.run()
