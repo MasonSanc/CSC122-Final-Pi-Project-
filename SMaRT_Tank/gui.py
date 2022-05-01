@@ -124,16 +124,6 @@ class Main_menu_frame(ttk.Frame):
         self.salinity_button = self.create_menu_button("Salinity", command, 0, 1)
         self.temperature_button = self.create_menu_button("Temperature", command, 1, 0)
         self.ph_button = self.create_menu_button("pH", command, 1, 1)
-    """
-    def set_background(self):
-        image = None
-        bg_image = Image.open('art_assets/bg.jpg').convert('RGBA')
-        image = ImageTk.PhotoImage(bg_image)
-        background = Label(self, image=image)
-        background.place(anchor='center')
-        background.image = image
-        return background
-    """
 
     def create_widget_config(self):
         self.button_style = ttk.Style()
