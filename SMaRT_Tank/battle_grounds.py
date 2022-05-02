@@ -1,28 +1,39 @@
 # This is the first python file here, just here to test things.
 
-#
-from multiprocessing.sharedctypes import Value
 from tkinter import *
-from tkinter import ttk
+
+# root = Tk()
+# rvar = IntVar(root)
+# rvar.set(1)
+
+def change(idx):
+    print(idx)
+
+def show_menu(root):
+    # global rvar
+    try:
+        show_menu.rvar
+    except:
+        show_menu.rvar = IntVar(root)
+        show_menu.rvar.set(1)
+
+    menubar = Menu(root)
+    settings = Menu(menubar, tearoff=0)
+    settings.add_command(label='some 1')
+    settings.add_command(label='some 2')
+    mDebug = Menu(settings, tearoff=0)
+
+    mDebug.add_radiobutton(label='first', var = show_menu.rvar, value = 0, command=lambda idx=0: change(idx))
+    mDebug.add_radiobutton(label='second', var = show_menu.rvar, value = 1, command=lambda idx=1: change(idx))
+    mDebug.add_radiobutton(label='third', var = show_menu.rvar, value = 2, command=lambda idx=2: change(idx))
+
+    settings.add_cascade(label='radio options', menu = mDebug)
+    settings.add_separator()
+    settings.add_command(label='quit')
+    menubar.add_cascade(label="Menu", menu=settings)
+    root.config(menu=menubar)
 
 root = Tk()
-root.geometry("400x400")
-
-var1 = IntVar()
-var2 = IntVar()
-var3 = IntVar()
-var4 = IntVar()
-
-GRAPH_TYPES = [("Live", var1), ("Hour", var2), ("Day", var3), ("Week", var4)]
-
-menu_button = ttk.Menubutton(root, text="Select Graph Type")
-menu = Menu(menu_button, tearoff=False)
-
-for type, var in GRAPH_TYPES:
-    menu.add_radiobutton(label=type, variable=var)
-
-menu_button["menu"] = menu
-
-menu_button.grid(row=0, column=1, sticky="news")
+show_menu(root)
 
 root.mainloop()

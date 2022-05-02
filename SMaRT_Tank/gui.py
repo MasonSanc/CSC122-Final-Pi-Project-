@@ -20,12 +20,14 @@ There are two paths to take with vcontroling the frames.
 
 from tkinter import *
 from tkinter import ttk
-from turtle import bgcolor
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import pandas as pd
 from PIL import ImageTk, Image
+
+import os
+import psutil
 
 class Main_GUI(Tk):
 
@@ -106,6 +108,8 @@ class Main_GUI(Tk):
 
     def run(self):
         self.create_gui()
+        if self.DEBUG:
+            print(f"This program is taking up {psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2}MB of memory")
         self.mainloop()
 
 class Main_menu_frame(ttk.Frame):
@@ -204,9 +208,12 @@ class Graph_frame(ttk.Frame):
         self.menu_button = ttk.Menubutton(self, text="Select Graph Type")
         self.menu = Menu(self.menu_button, tearoff=False)
         self.menu_button["menu"] = self.menu
+        self.menu_var = StringVar()
 
         for type in self.GRAPH_TYPES:
-            self.menu.add_radiobutton(label=type)
+            self.menu.add_radiobutton(label=type, variable=self.menu_var, value=type)
+
+        self.menu_var.set("Live")
 
         self.menu_button.grid(row=0, column=1, sticky="news")
 
