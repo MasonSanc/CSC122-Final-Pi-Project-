@@ -18,6 +18,7 @@ There are two paths to take with vcontroling the frames.
     Faster start up, slow swap between frames, less demmanding for updating graphs
 '''
 
+from cProfile import label
 from tkinter import *
 from tkinter import ttk
 import matplotlib.pyplot as plt
@@ -68,7 +69,14 @@ class Main_GUI(Tk):
         self.graph_sizing = {
             "graph_width_in" : (self.winfo_screenmmwidth() / 25.4),
             "graph_height_in" : (self.winfo_screenmmheight() / 25.4) * 0.8
-        }   
+        }  
+
+    def read_data(self):
+        liveData = pd.read_csv('liveData.csv')
+        self.time = liveData['time'].to_numpy()
+        self.temp = liveData['temp'].to_numpy()
+        self.salinity = liveData['salinity'].to_numpy()
+        self.pH = liveData['pH'].to_numpy() 
 
     def create_gui(self):
         self.main_menu_frame = Main_menu_frame(self, self.swap_to_graph_frame)
@@ -84,12 +92,15 @@ class Main_GUI(Tk):
 
     def swap_to_main_menu_frame(self, graph):
         if graph == self.SALINITY_GRAPH_DATA["measurement"]:
+            self.salinity_graph_frame.graph.figure_axes.ioff()
             self.salinity_graph_frame.forget()
             
         elif graph == self.TEMPERATURE_GRAPH_DATA["measurement"]:
+            self.temperature_graph_frame.graph.figure_axes.ioff()
             self.temperature_graph_frame.forget()
 
         elif graph == self.PH_GRAPH_DATA["measurement"]:
+            self.ph_graph_frame.graph.figure_axes.ioff()
             self.ph_graph_frame.forget()
 
         self.main_menu_frame.pack(expand=1, fill="both")
@@ -98,12 +109,15 @@ class Main_GUI(Tk):
         self.main_menu_frame.forget()
 
         if graph == self.SALINITY_GRAPH_DATA["measurement"]:
+            self.salinity_graph_frame.graph.figure_axes.ion()
             return self.salinity_graph_frame.pack(expand=1, fill="both")
             
         if graph == self.TEMPERATURE_GRAPH_DATA["measurement"]:
+            self.temperature_graph_frame.graph.figure_axes.ion()
             return self.temperature_graph_frame.pack(expand=1, fill="both")
 
         if graph == self.PH_GRAPH_DATA["measurement"]:
+            self.ph_graph_frame.graph.figure_axes.ioff()
             return self.ph_graph_frame.pack(expand=1, fill="both")
 
     def run(self):
@@ -175,7 +189,7 @@ class Graph_frame(ttk.Frame):
     GRAPH_TYPE_MENU_FONT_SIZE = 25
     WIDGET_FONT = 'Helvetica'
 
-    GRAPH_TYPES = ["Live", "Hour", "Day", "Week"]
+    GRAPH_TYPES = ["Live", "Hour", "Day"]
 
     def __init__(self, master, graph_sizing ,command, graph_parameters):
         Frame.__init__(self, master)
@@ -203,6 +217,17 @@ class Graph_frame(ttk.Frame):
         self.columnconfigure(1, weight=4)
         self.rowconfigure(0, weight=1)
         self.rowconfigure(1, weight=0)
+
+    def swap_type(self, type):
+        if type == self.GRAPH_TYPES[0]:
+             
+
+        if type == self.GRAPH_TYPES[1]:
+
+
+        if type == self.GRAPH_TYPES[2]:
+
+        
 
     def create_graph_type_menu(self):
         self.menu_button = ttk.Menubutton(self, text="Select Graph Type")
@@ -239,14 +264,11 @@ class Graph(plt.Figure):
         self.figure_axes.axhline(y=graph_parameters["lcl"], color='b', label="LCL")
         self.figure_axes.legend()
 
-        self.canvas.draw()
         self.canvas.get_tk_widget().grid(row=1, column=0, columnspan=2, sticky="news")
 
-    def plot_data(self, data):
-        pass 
-
-    def swap_data(self, data_set):
-        pass
+    def plot_data(self, data, title):
+        x_data, y_data = data 
+        self.figure_axes.plot(x_data, y_data, label=title)
 
     
 
