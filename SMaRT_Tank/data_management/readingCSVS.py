@@ -3,13 +3,19 @@ import time
 import serial
 import pandas as pd
 
-USING_PI = False
+def USING_PI():
+    try:
+        with io.open('/sys/firmware/devicetree/base/model', 'r') as m:
+            if 'raspberry pi' in m.read().lower(): return True
+    except Exception: pass
+    return False
 
-if USING_PI:
-    import RPi.GPIO
+if USING_PI():
+    import RPi.GPIO as GPIO
 else:
     GPIO = ''
 
+GPIO.setmode(GPIO.BCM)
 HEATER_PIN = 4
 LIGHT_PIN = 5
 GPIO.setup(HEATER_PIN, GPIO.OUT)
@@ -49,6 +55,9 @@ dailyData['temp'] = dailyData['temp'].astype(float)
 dailyData['sal'] = dailyData['sal'].astype(int)
 dailyData['pH'] = dailyData['pH'].astype(float)
 dailyData = dailyData.set_index('unixTime', drop=False)
+
+light_mode = 0
+GPIO.output(LIGHT_PIN, GPIO.LOW)
 
 try:
     lastHistoricDataPoint = int(historicData.iloc[int(len(historicData.index))-1,0])
@@ -95,5 +104,18 @@ try:
             temp, sal, pH = float(temp), int(sal), float(pH)
             liveData.loc[round(time.time())] = [round(time.time()), temp, sal, pH]
 
+        if int(time.strftime(time.localtime(),"%M")) == 5 and lightLastChanged - round(time.time()) >= 300:
+            if light_mode == 0:
+                light_mode = 1
+                GPIO.output(LIGHT_PIN, GPIO.HIGH)
+                lightLastChanged = round(time.time())
+            else:
+                light_mode = 0
+                GPIO.output(LIGHT_PIN, GPIO.LOW)
+                lightLastChanged = round(time.time())
+
+        
+
 except KeyboardInterrupt:
+    GPIO.cleanup()
     exit()
