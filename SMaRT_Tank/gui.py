@@ -18,7 +18,6 @@ There are two paths to take with vcontroling the frames.
     Faster start up, slow swap between frames, less demmanding for updating graphs
 '''
 
-from cProfile import label
 from tkinter import *
 from tkinter import ttk
 import matplotlib.pyplot as plt
@@ -26,6 +25,7 @@ import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import pandas as pd
 from PIL import ImageTk, Image
+import data_processing as dp
 
 import os
 import psutil
@@ -70,27 +70,54 @@ class Main_GUI(Tk):
             "graph_width_in" : (self.winfo_screenmmwidth() / 25.4),
             "graph_height_in" : (self.winfo_screenmmheight() / 25.4) * 0.8
         }
-        self.read_data()
+
+        self.data = dp.Data()
+
+        # update all arrays
+        self.update_arrays((1,1,1))
         plt.ion()
 
-    def read_data(self):
-        liveData = pd.read_csv('liveData_small.csv')
-        self.time = liveData['time'].replace({np.nan: 'NaT'}).astype(str).to_numpy()
-        self.temp = liveData['temp'].replace({np.nan: None}).to_numpy()
-        self.salinity = liveData['salinity'].replace({np.nan: None}).to_numpy()
-        self.pH = liveData['pH'].replace({np.nan: None}).to_numpy() 
+    def update_arrays(self, update_tuple):
+
+        update_live, update_hourly, update_daily = update_tuple
+
+        if update_live:
+            self.live_time = self.data.second_data['unixTime'].replace({np.nan: 'NaT'}).to_numpy('datetime64[s]')
+            self.live_temp = self.data.second_data['temp'].replace({np.nan: None}).to_numpy()
+            self.live_salinity = self.data.second_data['sal'].replace({np.nan: None}).to_numpy()
+            self.live_pH = self.data.second_data['pH'].replace({np.nan: None}).to_numpy()
+
+        if update_hourly:
+            self.hourly_time = self.data.hourly_data['unixTime'].replace({np.nan: 'NaT'}).to_numpy('datetime64[s]')
+            self.hourly_temp = self.data.hourly_data['temp'].replace({np.nan: None}).to_numpy()
+            self.hourly_salinity = self.data.hourly_data['sal'].replace({np.nan: None}).to_numpy()
+            self.hourly_pH = self.data.hourly_data['pH'].replace({np.nan: None}).to_numpy() 
+
+        if update_daily :
+            self.daily_time = self.data.daily_data['unixTime'].replace({np.nan: 'NaT'}).to_numpy('datetime64[s]')
+            self.daily_temp = self.data.daily_data['temp'].replace({np.nan: None}).to_numpy()
+            self.daily_salinity = self.data.daily_data['sal'].replace({np.nan: None}).to_numpy()
+            self.daily_pH = self.data.daily_data['pH'].replace({np.nan: None}).to_numpy()
+
+        self.temp_data = [(self.live_temp, self.live_time), (self.hourly_temp, self.hourly_time), (self.daily_temp, self.daily_time)]
+        self.salinity_data = [(self.live_salinity, self.live_time), (self.hourly_salinity, self.hourly_time), (self.daily_salinity, self.daily_time)]
+        self.pH_data = [(self.live_pH, self.live_time), (self.hourly_pH, self.hourly_time), (self.daily_pH, self.daily_time)]
 
     def create_gui(self):
         self.main_menu_frame = Main_menu_frame(self, self.swap_to_graph_frame)
 
-        self.salinity_graph_frame = Graph_frame(self, self.graph_sizing, self.swap_to_main_menu_frame, self.SALINITY_GRAPH_DATA, (self.time, self.salinity))
-        self.temperature_graph_frame = Graph_frame(self, self.graph_sizing, self.swap_to_main_menu_frame, self.TEMPERATURE_GRAPH_DATA, (self.time, self.temp))
-        self.ph_graph_frame = Graph_frame(self, self.graph_sizing, self.swap_to_main_menu_frame, self.PH_GRAPH_DATA, (self.time, self.pH))
+        self.salinity_graph_frame = Graph_frame(self, self.graph_sizing, self.swap_to_main_menu_frame, self.SALINITY_GRAPH_DATA, self.salinity_data)
+        self.temperature_graph_frame = Graph_frame(self, self.graph_sizing, self.swap_to_main_menu_frame, self.TEMPERATURE_GRAPH_DATA, self.temp_data)
+        self.ph_graph_frame = Graph_frame(self, self.graph_sizing, self.swap_to_main_menu_frame, self.PH_GRAPH_DATA, self.pH_data)
 
         # Hide the graphs from screen
         self.salinity_graph_frame.forget()
         self.temperature_graph_frame.forget()
         self.ph_graph_frame.forget()
+
+        # set current frame to main menu
+        self.current_frame = self.main_menu_frame
+
 
     def swap_to_main_menu_frame(self, graph):
         if graph == self.SALINITY_GRAPH_DATA["measurement"]:
@@ -102,24 +129,66 @@ class Main_GUI(Tk):
         elif graph == self.PH_GRAPH_DATA["measurement"]:
             self.ph_graph_frame.forget()
 
+        self.current_frame = self.main_menu_frame
         self.main_menu_frame.pack(expand=1, fill="both")
 
     def swap_to_graph_frame(self, graph):
         self.main_menu_frame.forget()
 
         if graph == self.SALINITY_GRAPH_DATA["measurement"]:
+            self.current_frame = self.salinity_graph_frame
+            current_type = self.current_frame.menu_var.get()
+            if current_type == self.current_frame.GRAPH_TYPES[0]:
+                self.current_frame.graph.plot_data(self.current_frame.live_data, self.current_frame.GRAPH_TYPES[0])
+            if current_type == self.current_frame.GRAPH_TYPES[1]:
+                self.current_frame.graph.plot_data(self.current_frame.hourly_data, self.current_frame.GRAPH_TYPES[1])
+            if current_type == self.current_frame.GRAPH_TYPES[2]:
+                self.current_frame.graph.plot_data(self.current_frame.daily_data, self.current_frame.GRAPH_TYPES[2])
             return self.salinity_graph_frame.pack(expand=1, fill="both")
             
         if graph == self.TEMPERATURE_GRAPH_DATA["measurement"]:
+            self.current_frame = self.temperature_graph_frame
+            current_type = self.current_frame.menu_var.get()
+            if current_type == self.current_frame.GRAPH_TYPES[0]:
+                self.current_frame.graph.plot_data(self.current_frame.live_data, self.current_frame.GRAPH_TYPES[0])
+            if current_type == self.current_frame.GRAPH_TYPES[1]:
+                self.current_frame.graph.plot_data(self.current_frame.hourly_data, self.current_frame.GRAPH_TYPES[1])
+            if current_type == self.current_frame.GRAPH_TYPES[2]:
+                self.current_frame.graph.plot_data(self.current_frame.daily_data, self.current_frame.GRAPH_TYPES[2])
             return self.temperature_graph_frame.pack(expand=1, fill="both")
 
         if graph == self.PH_GRAPH_DATA["measurement"]:
+            self.current_frame = self.ph_graph_frame
+            current_type = self.current_frame.menu_var.get()
+            if current_type == self.current_frame.GRAPH_TYPES[0]:
+                self.current_frame.graph.plot_data(self.current_frame.live_data, self.current_frame.GRAPH_TYPES[0])
+            if current_type == self.current_frame.GRAPH_TYPES[1]:
+                self.current_frame.graph.plot_data(self.current_frame.hourly_data, self.current_frame.GRAPH_TYPES[1])
+            if current_type == self.current_frame.GRAPH_TYPES[2]:
+                self.current_frame.graph.plot_data(self.current_frame.daily_data, self.current_frame.GRAPH_TYPES[2])
             return self.ph_graph_frame.pack(expand=1, fill="both")
+
+    def update(self, update_tuple):
+            
+        self.update_arrays(update_tuple)
+        self.salinity_graph_frame.update_data(self.salinity_data)
+        self.temperature_graph_frame.update_data(self.temp_data)
+        self.ph_graph_frame.update_data(self.pH_data)
+
+        if self.current_frame == self.main_menu_frame:
+                return
+
+        current_type = self.current_frame.menu_var.get()
+        if current_type == self.current_frame.GRAPH_TYPES[0]:
+            self.current_frame.graph.plot_data(self.current_frame.live_data, self.current_frame.GRAPH_TYPES[0])
+        if current_type == self.current_frame.GRAPH_TYPES[1]:
+            self.current_frame.graph.plot_data(self.current_frame.hourly_data, self.current_frame.GRAPH_TYPES[1])
+        if current_type == self.current_frame.GRAPH_TYPES[2]:
+            self.current_frame.graph.plot_data(self.current_frame.daily_data, self.current_frame.GRAPH_TYPES[2])
+
 
     def run(self):
         self.create_gui()
-        if self.DEBUG:
-            print(f"This program is taking up {psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2}MB of memory")
         self.mainloop()
 
 class Main_menu_frame(ttk.Frame):
@@ -188,7 +257,12 @@ class Graph_frame(ttk.Frame):
     GRAPH_TYPES = ["Live", "Hour", "Day"]
 
     def __init__(self, master, graph_sizing ,command, graph_parameters, data):
-        self.data = data
+
+        # set data
+        self.live_data = data[0]
+        self.hourly_data = data[1]
+        self.daily_data = data[2]
+
         Frame.__init__(self, master)
         self.pack(expand=1, fill="both")
 
@@ -217,17 +291,16 @@ class Graph_frame(ttk.Frame):
         self.rowconfigure(1, weight=0)
 
     def swap_type(self, type, data):
-        print(f"Swapinig to {type}")
         if type == self.GRAPH_TYPES[0]:
-             self.graph.plot_data(self.data, type)
+             self.graph.plot_data(data, type)
              return
 
         if type == self.GRAPH_TYPES[1]:
-            self.graph.plot_data(self.data, type)
+            self.graph.plot_data(data, type)
             return
 
         if type == self.GRAPH_TYPES[2]:
-            self.graph.plot_data(self.data, type)
+            self.graph.plot_data(data, type)
             return
 
     def create_graph_type_menu(self):
@@ -237,13 +310,28 @@ class Graph_frame(ttk.Frame):
         self.menu_var = StringVar()
 
         for type in self.GRAPH_TYPES:
-           self.menu.add_radiobutton(label=type, variable=self.menu_var, value=type, command=lambda type=type: self.swap_type(type, self.data))
-           print(type)
+            
+            if type == self.GRAPH_TYPES[0]:
+                self.menu.add_radiobutton(label=type, variable=self.menu_var, value=type, command=lambda type=type: self.swap_type(type, self.live_data))
+                continue
+
+            if type == self.GRAPH_TYPES[1]:
+                self.menu.add_radiobutton(label=type, variable=self.menu_var, value=type, command=lambda type=type: self.swap_type(type, self.hourly_data))
+                continue
+
+            if type == self.GRAPH_TYPES[2]:
+                self.menu.add_radiobutton(label=type, variable=self.menu_var, value=type, command=lambda type=type: self.swap_type(type, self.daily_data))
+                continue
 
         self.menu.invoke(0)
         self.menu_var.set("Live")
 
         self.menu_button.grid(row=0, column=1, sticky="news")
+
+    def update_data(self, data):
+        self.live_data = data[0]
+        self.hourly_data = data[1]
+        self.daily_data = data[2]
 
 class Graph(plt.Figure):
 
@@ -253,28 +341,34 @@ class Graph(plt.Figure):
         plt.Figure.__init__(self, figsize=(graph_sizing["graph_width_in"], graph_sizing["graph_height_in"]), dpi=100)
         self.figure_axes = self.add_subplot()
         self.canvas = FigureCanvasTkAgg(self, master)
-        
+        self.graph_parameters = graph_parameters
+
         self.graph_setup(graph_parameters)
 
     def graph_setup(self, graph_parameters):
         # Add graph labels
-        self.figure_axes.set_xlabel(graph_parameters["xlabel"])
-        self.figure_axes.set_ylabel(graph_parameters["ylabel"])
-        self.figure_axes.set_title(graph_parameters["title"])
-
-        # Create UCL and LCL, fake/bad data is being used till I find workaround
-        self.figure_axes.axhline(y=graph_parameters["ucl"], color='r', label="UCL")
-        self.figure_axes.axhline(y=graph_parameters["lcl"], color='b', label="LCL")
-        self.figure_axes.legend()
+        self.figure_axes.set_xlabel(self.graph_parameters["xlabel"])
+        self.figure_axes.set_ylabel(self.graph_parameters["ylabel"])
+        self.figure_axes.set_title(self.graph_parameters["title"])
 
         self.canvas.get_tk_widget().grid(row=1, column=0, columnspan=2, sticky="news")
 
     def plot_data(self, data, label):
-        x_data, y_data = data 
-        print(f"{x_data}\n\n {y_data}")
-        self.figure_axes.plot(x_data, y_data, label=label, markevery=5)
+        y_data, x_data = data 
 
-    
+        # clear canvas
+        self.figure_axes.clear()
 
-app = Main_GUI()
-app.run()
+        # create UCL and LCL
+        self.figure_axes.axhline(y=self.graph_parameters["ucl"], color='r', label="UCL")
+        self.figure_axes.axhline(y=self.graph_parameters["lcl"], color='b', label="LCL")
+
+        # plot new data
+        self.figure_axes.plot(x_data, y_data, label=label)
+        self.figure_axes.set_xlim(x_data[1], x_data[-1])
+
+        # add legend
+        self.figure_axes.legend()
+
+        # update canvas
+        self.canvas.draw()
